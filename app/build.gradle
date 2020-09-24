@@ -1,0 +1,70 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.starter.easylauncher'
+
+static def isCiBuild() {
+    // allows the build server to produce release builds for internal testing only
+    // obviously this isn't going to change itself in this example
+    return true
+}
+
+android {
+
+    compileSdkVersion 30
+
+    defaultConfig {
+        applicationId "com.example.mutliplelauncher"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        dummy {
+            storeFile file('../dummy.keystore')
+            storePassword 'android'
+            keyAlias 'androidkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.dummy
+        }
+    }
+}
+
+easylauncher {
+    buildTypes {
+        debug {
+            filters = redRibbonFilter()
+
+            // desirable be able to ribbonize multiple icons, would this take into account all the variants, i.e. vector, round and legacy?
+            // wouldn't be a problem to also specify ic_launcher_one_round in addition.
+            // iconNames = ["@mipmap/ic_launcher", "@mipmap/ic_launcher_one", "@mipmap/ic_launcher_two"]
+        }
+        release {
+            enable isCiBuild()
+            filters = redRibbonFilter("CI")
+
+            // iconNames = ["@mipmap/ic_launcher", "@mipmap/ic_launcher_one", "@mipmap/ic_launcher_two"]
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+}
